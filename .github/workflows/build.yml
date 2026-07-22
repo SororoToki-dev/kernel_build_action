@@ -1,4 +1,4 @@
-name: Compile GKI Kernel
+name: Compile GKI Kernels
 
 on:
   workflow_dispatch:
