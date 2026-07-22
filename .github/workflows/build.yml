@@ -1,26 +1,33 @@
-name: CI
+name: Compile GKI Kernel
 
 on:
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
-  build-kernel:
-    name: Build Kernel
+  build-gki:
+    name: Build Kernel from Source
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout kernel source
-        uses: actions/checkout@v4
-        with:
-          repository: android/kernel_common
-          ref: android14-6.1
-          path: kernel/source
+      - name: Install Native Compiler Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git ccache libssl-dev flex bison libelf-dev bc libncurses-dev kmod
+
+      - name: Download Official Public AOSP Clang
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/clang
+          cd $GITHUB_WORKSPACE/clang
+          wget -q --show-progress https://googlesource.com
+          tar -xzf clang-r487747c.tar.gz
+          echo "$GITHUB_WORKSPACE/clang/bin" >> $GITHUB_PATH
+
+      - name: Clone Public Common Kernel Source
+        run: |
+          git clone --depth=1 -b android14-6.1 https://googlesource.com kernel-source
 
       - name: Inject MediaTek drivers for Panda PAU0F
         run: |
-          cd kernel/source
+          cd kernel-source
           echo "CONFIG_WLAN_VENDOR_MEDIATEK=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_MT76_CORE=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_MT76_USB=y" >> arch/arm64/configs/gki_defconfig
@@ -28,12 +35,14 @@ jobs:
           echo "CONFIG_MT76x2u=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_MT7921U=y" >> arch/arm64/configs/gki_defconfig
 
-      - name: Build
-        uses: dabao1955/kernel_build_action@main
+      - name: Run Native Kernel Compilation Pass
+        run: |
+          cd kernel-source
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 gki_defconfig
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 -j$(nproc) Image
+
+      - name: Upload Flashable Kernel Binary Asset
+        uses: actions/upload-artifact@v4
         with:
-          kernel-url: ./kernel/source/
-          config: gki_defconfig
-          arch: arm64
-          aosp-clang: true
-          aosp-gcc: true
-          anykernel3: true
+          name: Custom-Panda-Kernel
+          path: kernel-source/arch/arm64/boot/Image
