@@ -27,12 +27,12 @@ jobs:
           echo "CONFIG_MT76x02_USB=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_MT76x2u=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_MT7921U=y" >> arch/arm64/configs/gki_defconfig
-
-      - name: Build
+     - name: Build
         uses: dabao1955/kernel_build_action@main
         with:
           kernel-url: ./kernel/source/
           config: gki_defconfig
           arch: arm64
           aosp-clang: true
+          aosp-gcc: true
           anykernel3: true
