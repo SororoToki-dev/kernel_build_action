@@ -11,14 +11,14 @@ jobs:
       - name: Install Native Compiler Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y git ccache libssl-dev flex bison libelf-dev bc libncurses-dev kmod
+          sudo apt-get install -y git ccache libssl-dev flex bison libelf-dev bc libncurses-dev kmod wget tar
 
       - name: Download Official Public AOSP Clang
         run: |
           mkdir -p $GITHUB_WORKSPACE/clang
           cd $GITHUB_WORKSPACE/clang
-          wget -q --show-progress https://googlesource.com
-          tar -xzf clang-r487747c.tar.gz
+          wget -q --show-progress -O clang.tar.gz "https://googlesource.com"
+          tar -xzf clang.tar.gz
           echo "$GITHUB_WORKSPACE/clang/bin" >> $GITHUB_PATH
 
       - name: Clone Public Common Kernel Source
