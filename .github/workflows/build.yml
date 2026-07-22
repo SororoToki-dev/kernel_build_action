@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: android/kernel_common
-          ref: android16-6.1
+          ref: android14-6.1
           path: kernel/source
 
       - name: Inject MediaTek drivers for Panda PAU0F
